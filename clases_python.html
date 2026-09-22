@@ -1,0 +1,429 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Basico - Clases Interactivas</title>
+<script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+<style>
+pre,code,.mono{font-family:'Consolas','JetBrains Mono','Courier New',monospace;}
+.kw{color:#ff79c6;font-weight:700}.bi{color:#8be9fd}.str{color:#50fa7b}.cmt{color:#6272a4;font-style:italic}.num{color:#bd93f9}.fn{color:#ffb86c}.fb{color:#ffb86c;font-weight:700}.var{color:#f8f8f2}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}.anim{animation:fadeUp .35s ease-out both}
+@keyframes blink{50%{opacity:0}}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(80,250,123,.4)}50%{box-shadow:0 0 0 8px rgba(80,250,123,0)}}.glow{animation:pulseGlow 1.8s ease-in-out}
+.qopt{cursor:pointer;transition:all .15s ease;border:2px solid #30363d}
+.qopt:hover:not(.locked){border-color:#58a6ff;background:rgba(88,166,255,.08);transform:translateX(3px)}
+.qopt.sel{border-color:#58a6ff!important;background:rgba(88,166,255,.12)!important}
+.qopt.good{border-color:#50fa7b!important;background:rgba(80,250,123,.10)!important}
+.qopt.bad{border-color:#ff5555!important;background:rgba(255,85,85,.08)!important}
+.qopt.locked{cursor:not-allowed}
+.vfb{cursor:pointer;transition:all .15s;font-weight:700;border:2px solid transparent;border-radius:.5rem;padding:.3rem .85rem;font-size:.8rem}
+.vfb:hover:not(.locked){transform:scale(1.05)}
+.vfb.vs{border-color:#50fa7b;background:rgba(80,250,123,.15);color:#50fa7b}
+.vfb.fs{border-color:#ff5555;background:rgba(255,85,85,.12);color:#ff5555}
+.vfb.vok{border-color:#50fa7b;background:rgba(80,250,123,.22);color:#50fa7b}
+.vfb.fox{border-color:#ff5555;background:rgba(255,85,85,.18);color:#ff5555}
+.vfb.locked{cursor:not-allowed}
+.scr::-webkit-scrollbar{width:5px;height:5px}.scr::-webkit-scrollbar-track{background:#161b22}.scr::-webkit-scrollbar-thumb{background:#44475a;border-radius:3px}
+.dot{width:8px;height:8px;border-radius:50%;cursor:pointer;transition:all .2s}
+</style>
+</head>
+<body style="background:#0d1117;color:#e6edf3;height:100vh;display:flex;flex-direction:column;overflow:hidden;">
+
+<!-- HEADER -->
+<header style="display:flex;align-items:center;justify-content:space-between;padding:.6rem 1.4rem;background:#161b22;border-bottom:1px solid #30363d;flex-shrink:0;">
+  <div style="display:flex;align-items:center;gap:.55rem;">
+    <span style="font-size:1.35rem;">&#x1F40D;</span>
+    <span style="font-weight:700;font-size:.95rem;">Python B&#xe1;sico</span>
+  </div>
+  <div style="display:flex;gap:.35rem;background:#0d1117;border-radius:.6rem;padding:.25rem;">
+    <button id="tab1" onclick="setClass(1)" style="padding:.25rem 1rem;border-radius:.4rem;font-size:.8rem;font-weight:700;border:none;cursor:pointer;background:#22c55e;color:#000;transition:all .2s;">Clase 1</button>
+    <button id="tab2" onclick="setClass(2)" style="padding:.25rem 1rem;border-radius:.4rem;font-size:.8rem;font-weight:700;border:none;cursor:pointer;background:transparent;color:#8b949e;transition:all .2s;">Clase 2</button>
+  </div>
+  <div id="scoreBox" style="display:flex;align-items:center;gap:.4rem;background:#21262d;padding:.3rem .8rem;border-radius:9999px;font-size:.82rem;">
+    <span style="color:#facc15;">&#9733;</span>
+    <span id="scoreEl" style="font-weight:700;">0 pts</span>
+  </div>
+</header>
+<div style="background:#21262d;height:4px;flex-shrink:0;"><div id="progFill" style="height:100%;background:#22c55e;transition:width .3s ease;width:10%;"></div></div>
+
+<!-- MAIN -->
+<main id="main" style="flex:1;overflow:hidden;padding:1.1rem 1.3rem;"></main>
+
+<!-- FOOTER -->
+<footer style="display:flex;align-items:center;justify-content:space-between;padding:.55rem 1.4rem;background:#161b22;border-top:1px solid #30363d;flex-shrink:0;">
+  <button id="btnPrev" onclick="navigate(-1)" style="display:flex;align-items:center;gap:.4rem;padding:.35rem 1rem;border-radius:.5rem;background:#21262d;border:none;color:#e6edf3;cursor:pointer;font-size:.82rem;font-weight:600;transition:all .2s;">&#8592; Anterior</button>
+  <div style="display:flex;align-items:center;gap:.7rem;">
+    <span id="slideLabel" style="color:#8b949e;font-size:.75rem;font-family:monospace;">1 / 10</span>
+    <div id="dotNav" style="display:flex;gap:.35rem;align-items:center;"></div>
+  </div>
+  <button id="btnNext" onclick="navigate(1)" style="display:flex;align-items:center;gap:.4rem;padding:.35rem 1rem;border-radius:.5rem;background:#22c55e;border:none;color:#000;cursor:pointer;font-size:.82rem;font-weight:700;transition:all .2s;">Siguiente &#8594;</button>
+</footer>
+
+<script>
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function tok(tokens){return tokens.map(t=>{const h=esc(t.t).replace(/\n/g,'<br>');return t.c?`<span class="${t.c}">${h}</span>`:h;}).join('');}
+
+// â”€â”€ CLASE 1 DATA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const C1=[
+{type:'cover',emoji:'&#x1F40D;',color:'green',title:'&#xa1;Aprende a Programar<br>con Python!',sub:'Clase 1 &mdash; Los Primeros Pasos',chips:['&#xa3;Qu&#xe9; es programar?','Variables','Tipos de datos','Tu primer programa']},
+{type:'concept',icon:'&#x1F468;&#x200D;&#x1F373;',color:'green',title:'&#xa3;Qu&#xe9; es un Programa?',lead:'Un programa es como una <strong style="color:#22c55e">receta de cocina</strong> para la computadora.',cards:[{i:'&#x1F4CB;',t:'La receta tiene pasos en orden &#x2192; el programa tiene <strong>instrucciones</strong> en orden.'},{i:'&#x1F916;',t:'El cocinero sigue la receta &#x2192; la <strong>computadora</strong> sigue el programa.'},{i:'&#x1F355;',t:'La receta produce comida &#x2192; el programa produce un <strong>resultado</strong>.'},{i:'&#x270F;&#xFE0F;',t:'Nosotros somos los <strong>programadores</strong>: escribimos las "recetas".'}]},
+{type:'concept',icon:'&#x1F680;',color:'green',title:'&#xa3;Por qu&#xe9; Python?',lead:'Python es uno de los lenguajes <strong style="color:#22c55e">m&#xe1;s usados del mundo</strong>.',cards:[{i:'&#x1F4F8;',t:'<strong>Instagram</strong> &mdash; gestiona millones de fotos cada d&#xed;a.'},{i:'&#x1F6F8;',t:'<strong>NASA</strong> &mdash; controla sat&#xe9;lites y misiones espaciales.'},{i:'&#x1F916;',t:'<strong>Inteligencia Artificial</strong> &mdash; ChatGPT, reconocimiento facial.'},{i:'&#x1F3AE;',t:'<strong>Videojuegos</strong> &mdash; Battlefield, EVE Online y m&#xe1;s.'},{i:'&#x1F60A;',t:'Su c&#xf3;digo <strong>parece ingl&#xe9;s normal</strong> &mdash; es de los m&#xe1;s f&#xe1;ciles de aprender.'}]},
+{type:'code',title:'&#xa1;Tu Primer Programa! &#x1F389;',filename:'hola_mundo.py',
+tokens:[{t:'print',c:'bi'},{t:'('},{t:'"Hola Mundo!"',c:'str'},{t:')'},{t:'\n'},{t:'print',c:'bi'},{t:'('},{t:'"Mi primer programa en Python"',c:'str'},{t:')'},{t:'\n'},{t:'print',c:'bi'},{t:'('},{t:'"Esto es programar!"',c:'str'},{t:')'}],
+out:'Hola Mundo!\nMi primer programa en Python\nEsto es programar!',
+tip:'<strong>print()</strong> es la funci&#xf3;n que usamos para mostrar texto en pantalla. &#xa1;As&#xed; de simple es tu primer programa!',link:'https://trinket.io/python3'},
+{type:'code',title:'Variables y Tipos de Datos',filename:'variables.py',
+tokens:[{t:'nombre',c:'var'},{t:' = '},{t:'"Ana"',c:'str'},{t:'       '},{t:'# str = texto',c:'cmt'},{t:'\n'},{t:'edad',c:'var'},{t:'   = '},{t:'17',c:'num'},{t:'          '},{t:'# int = numero entero',c:'cmt'},{t:'\n'},{t:'altura',c:'var'},{t:' = '},{t:'1.65',c:'num'},{t:'        '},{t:'# float = decimal',c:'cmt'},{t:'\n'},{t:'activo',c:'var'},{t:' = '},{t:'True',c:'kw'},{t:'        '},{t:'# bool  = True / False',c:'cmt'},{t:'\n\n'},{t:'print',c:'bi'},{t:'(nombre)   '},{t:'# Ana',c:'cmt'},{t:'\n'},{t:'print',c:'bi'},{t:'(edad)     '},{t:'# 17',c:'cmt'},{t:'\n'},{t:'print',c:'bi'},{t:'(altura)   '},{t:'# 1.65',c:'cmt'},{t:'\n'},{t:'print',c:'bi'},{t:'(activo)   '},{t:'# True',c:'cmt'}],
+out:'Ana\n17\n1.65\nTrue',
+tip:'Una variable es como una <strong>caja con nombre</strong>. Guardas un dato dentro y lo usas cuando quieras. Python detecta el tipo autom&#xe1;ticamente.',link:'https://trinket.io/python3'},
+{type:'code',title:'Pidiendo Datos al Usuario',filename:'entrada.py',
+tokens:[{t:'nombre',c:'var'},{t:' = '},{t:'input',c:'bi'},{t:'('},{t:'"Cual es tu nombre? "',c:'str'},{t:')'},{t:'\n'},{t:'edad',c:'var'},{t:'   = '},{t:'input',c:'bi'},{t:'('},{t:'"Cuantos años tienes? "',c:'str'},{t:')'},{t:'\n\n'},{t:'print',c:'bi'},{t:'('},{t:'"Hola, "',c:'str'},{t:' + nombre + '},{t:'"!"',c:'str'},{t:')'},{t:'\n'},{t:'print',c:'bi'},{t:'('},{t:'"Tienes "',c:'str'},{t:' + edad + '},{t:'" años."',c:'str'},{t:')'}],
+out:'Cual es tu nombre? Carlos\nCuantos años tienes? 16\nHola, Carlos!\nTienes 16 años.',
+tip:'<strong>input()</strong> pausa el programa y espera que el usuario escriba algo. Lo que escribe se guarda en la variable.',link:'https://trinket.io/python3'},
+{type:'quiz',qtype:'single',qid:'q1c1',pts:10,q:'&#xa3;Cu&#xe1;l de estos es un <span style="color:#22c55e;font-weight:700;">string (texto)</span> v&#xe1;lido en Python?',opts:[{t:'123',ok:false,why:'Es un n&#xfa;mero entero <strong>(int)</strong>, no un string.'},{t:'"Hola Mundo"',ok:true,why:'&#xa1;Correcto! Los strings van entre comillas dobles o simples.'},{t:'True',ok:false,why:'Es un booleano <strong>(bool)</strong>, no un string.'},{t:'3.14',ok:false,why:'Es un n&#xfa;mero decimal <strong>(float)</strong>, no un string.'}]},
+{type:'quiz',qtype:'multi',qid:'q2c1',pts:15,q:'&#xa3;Cu&#xe1;les de estos son <span style="color:#22c55e;font-weight:700;">tipos de datos</span> en Python?<br><span style="font-size:.8rem;color:#8b949e;">Selecciona todos los correctos</span>',opts:[{t:'int',ok:true,why:'&#x2713; int &#x2192; n&#xfa;meros enteros (1, 5, 100).'},{t:'loop',ok:false,why:'&#x2717; loop no es un tipo de dato; es un concepto de bucle.'},{t:'str',ok:true,why:'&#x2713; str &#x2192; texto ("Hola", "Python").'},{t:'bool',ok:true,why:'&#x2713; bool &#x2192; True o False.'},{t:'define',ok:false,why:'&#x2717; define no existe en Python.'}]},
+{type:'quiz',qtype:'text',qid:'q3c1',pts:10,q:'&#xa3;Qu&#xe9; n&#xfa;mero imprime este c&#xf3;digo?<br><pre style="display:inline-block;background:#282a36;border-radius:.5rem;padding:.5rem 1.2rem;margin-top:.5rem;font-size:1.1rem;" class="str">print(10 - 3)</pre>',ans:'7',hint:'Pista: 10 - 3 = ?'},
+{type:'closing',title:'&#xa1;Clase 1 Completada! &#x1F389;',items:['&#x2705; Sabes qu&#xe9; es un programa y c&#xf3;mo funciona','&#x2705; Conoces por qu&#xe9; Python es tan popular','&#x2705; Usas <code>print()</code> para mostrar mensajes','&#x2705; Declaras variables de distintos tipos','&#x2705; Pides datos con <code>input()</code>'],reto:'&#x1F3E0; <strong>Reto para casa:</strong> Crea un programa que pregunte el nombre y edad al usuario, y que diga si es mayor o menor de 18 a&#xf1;os.',sig:'La pr&#xf3;xima clase: &#xa1;Condicionales, Bucles y Funciones!'}
+];
+
+// â”€â”€ CLASE 2 DATA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const C2=[
+{type:'cover',emoji:'&#x1F3AE;',color:'blue',title:'&#xa1;Toma el Control!',sub:'Clase 2 &mdash; Condicionales, Bucles y Funciones',chips:['if / elif / else','Bucles for y while','Funciones con def']},
+{type:'concept',icon:'&#x1F500;',color:'blue',title:'Condicionales: if / elif / else',lead:'Los condicionales permiten que el programa <strong style="color:#60a5fa;">tome decisiones</strong> seg&#xfa;n la situaci&#xf3;n.',cards:[{i:'&#x2705;',t:'<code style="background:#21262d;padding:.1rem .4rem;border-radius:.25rem;color:#ff79c6;">if</code> &mdash; "Si esta condici&#xf3;n es verdad, haz esto."'},{i:'&#x1F504;',t:'<code style="background:#21262d;padding:.1rem .4rem;border-radius:.25rem;color:#ff79c6;">elif</code> &mdash; "Si no, y si esta otra condici&#xf3;n es verdad..."'},{i:'&#x21A9;&#xFE0F;',t:'<code style="background:#21262d;padding:.1rem .4rem;border-radius:.25rem;color:#ff79c6;">else</code> &mdash; "En cualquier otro caso, haz esto."'},{i:'&#x26A0;&#xFE0F;',t:'Python usa <strong>indentaci&#xf3;n</strong> (4 espacios) para definir qu&#xe9; va dentro de cada bloque. &#xa1;Es obligatorio!'}]},
+{type:'code',title:'&#xa3;Mayor o Menor de Edad?',filename:'edad.py',
+tokens:[{t:'edad',c:'var'},{t:' = '},{t:'int',c:'bi'},{t:'('},{t:'input',c:'bi'},{t:'('},{t:'"Cuantos años tienes? "',c:'str'},{t:'))'},{t:'\n\n'},{t:'if',c:'kw'},{t:' edad >= '},{t:'18',c:'num'},{t:':\n'},{t:'    '},{t:'print',c:'bi'},{t:'('},{t:'"Eres mayor de edad"',c:'str'},{t:')'},{t:'\n'},{t:'elif',c:'kw'},{t:' edad >= '},{t:'13',c:'num'},{t:':\n'},{t:'    '},{t:'print',c:'bi'},{t:'('},{t:'"Eres adolescente"',c:'str'},{t:')'},{t:'\n'},{t:'else',c:'kw'},{t:':\n'},{t:'    '},{t:'print',c:'bi'},{t:'('},{t:'"Eres niño"',c:'str'},{t:')'}],
+out:'&#xa3;Cu&#xe1;ntos a&#xf1;os tienes? 15\nEres adolescente &#x1F60E;',
+tip:'Nota los <strong>dos puntos (:)</strong> al final de if/elif/else y los <strong>4 espacios</strong> de indentaci&#xf3;n antes de cada print.',link:'https://trinket.io/python3'},
+{type:'quiz',qtype:'tf',qid:'q1c2',pts:15,title:'&#xa1;Verdadero o Falso!',qs:[{s:'El bloque <code style="background:#21262d;padding:.1rem .3rem;border-radius:.2rem;">else</code> siempre es <strong>obligatorio</strong> en un <code style="background:#21262d;padding:.1rem .3rem;border-radius:.2rem;">if</code>.',a:false},{s:'Python usa <strong>indentaci&#xf3;n</strong> (espacios) para definir bloques de c&#xf3;digo.',a:true},{s:'Puedes tener <strong>m&#xfa;ltiples</strong> <code style="background:#21262d;padding:.1rem .3rem;border-radius:.2rem;">elif</code> dentro de un mismo <code style="background:#21262d;padding:.1rem .3rem;border-radius:.2rem;">if</code>.',a:true},{s:'<code style="background:#21262d;padding:.1rem .3rem;border-radius:.2rem;">elif</code> es abreviatura de "else if".',a:true},{s:'Un <code style="background:#21262d;padding:.1rem .3rem;border-radius:.2rem;">if</code> puede estar <strong>dentro</strong> de otro <code style="background:#21262d;padding:.1rem .3rem;border-radius:.2rem;">if</code>.',a:true}]},
+{type:'concept',icon:'&#x1F501;',color:'blue',title:'Bucles: Repetir Acciones',lead:'Los bucles ejecutan c&#xf3;digo <strong style="color:#60a5fa;">m&#xfa;ltiples veces</strong> sin escribirlo repetido.',cards:[{i:'&#x1F522;',t:'<code style="background:#21262d;padding:.1rem .4rem;border-radius:.25rem;color:#ff79c6;">for</code> &mdash; repite un <strong>n&#xfa;mero conocido</strong> de veces.'},{i:'&#x23F3;',t:'<code style="background:#21262d;padding:.1rem .4rem;border-radius:.25rem;color:#ff79c6;">while</code> &mdash; repite <strong>mientras</strong> una condici&#xf3;n sea verdad.'},{i:'&#x1F3AF;',t:'<code style="background:#21262d;padding:.1rem .4rem;border-radius:.25rem;color:#8be9fd;">range(n)</code> &mdash; genera n&#xfa;meros del 0 al n-1.'},{i:'&#x1F6D1;',t:'<code style="background:#21262d;padding:.1rem .4rem;border-radius:.25rem;color:#ff5555;">break</code> &mdash; sale del bucle antes de que termine.'}]},
+{type:'code',title:'Tabla de Multiplicar con for',filename:'tabla.py',
+tokens:[{t:'numero',c:'var'},{t:' = '},{t:'int',c:'bi'},{t:'('},{t:'input',c:'bi'},{t:'('},{t:'"Tabla del cual? "',c:'str'},{t:'))'},{t:'\n\n'},{t:'for',c:'kw'},{t:' i '},{t:'in',c:'kw'},{t:' '},{t:'range',c:'bi'},{t:'('},{t:'1',c:'num'},{t:', '},{t:'11',c:'num'},{t:'):\n'},{t:'    resultado',c:'var'},{t:' = numero * i\n'},{t:'    '},{t:'print',c:'bi'},{t:'(f"'},{t:'{numero}',c:'fb'},{t:' x ',c:'str'},{t:'{i}',c:'fb'},{t:' = ',c:'str'},{t:'{resultado}',c:'fb'},{t:'")'},{t:'\n\n'},{t:'# Ejemplo con while:\n',c:'cmt'},{t:'contador',c:'var'},{t:' = '},{t:'1',c:'num'},{t:'\n'},{t:'while',c:'kw'},{t:' contador <= '},{t:'3',c:'num'},{t:':\n'},{t:'    '},{t:'print',c:'bi'},{t:'(contador)\n'},{t:'    contador',c:'var'},{t:' += '},{t:'1',c:'num'}],
+out:'&#xa3;Tabla del cu&#xe1;l? 5\n5 x 1 = 5\n5 x 2 = 10\n5 x 3 = 15\n5 x 4 = 20\n5 x 5 = 25\n5 x 6 = 30\n5 x 7 = 35\n5 x 8 = 40\n5 x 9 = 45\n5 x 10 = 50\n1\n2\n3',
+tip:'<strong>range(1, 11)</strong> genera los numeros del 1 al 10. Los <strong>f-strings</strong> con {} permiten insertar variables dentro del texto.',link:'https://trinket.io/python3'},
+{type:'quiz',qtype:'multi',qid:'q2c2',pts:15,q:'&#xa3;Cu&#xe1;les son <span style="color:#60a5fa;font-weight:700;">operadores de comparaci&#xf3;n</span> v&#xe1;lidos en Python?<br><span style="font-size:.8rem;color:#8b949e;">Selecciona todos los correctos</span>',opts:[{t:'==  (igual a)',ok:true,why:'&#x2713; == compara si dos valores son iguales.'},{t:'=   (asignacion)',ok:false,why:'&#x2717; = asigna valores a variables. No compara!'},{t:'!=  (diferente a)',ok:true,why:'&#x2713; != verifica si dos valores son distintos.'},{t:'>=  (mayor o igual a)',ok:true,why:'&#x2713; >= verifica si un valor es mayor o igual.'},{t:'&&  (AND en JavaScript)',ok:false,why:'&#x2717; En Python se escribe "and", no "&&".'}]},
+{type:'concept',icon:'&#x1F4E6;',color:'blue',title:'Funciones: C&#xf3;digo Reutilizable',lead:'Una funci&#xf3;n es un <strong style="color:#60a5fa;">bloque de c&#xf3;digo con nombre</strong> que usamos cuantas veces queramos.',cards:[{i:'&#x1F4DD;',t:'Se definen con la palabra <code style="background:#21262d;padding:.1rem .4rem;border-radius:.25rem;color:#ff79c6;">def</code> seguida del nombre de la funci&#xf3;n.'},{i:'&#x1F4E5;',t:'Pueden recibir <strong>par&#xe1;metros</strong> (datos de entrada entre par&#xe9;ntesis).'},{i:'&#x1F4E4;',t:'Pueden devolver un resultado con <code style="background:#21262d;padding:.1rem .4rem;border-radius:.25rem;color:#ff79c6;">return</code>.'},{i:'&#x267B;&#xFE0F;',t:'Evitan repetir c&#xf3;digo &mdash; escribes <strong>una vez</strong>, usas <strong>muchas veces</strong>.'}]},
+{type:'code',title:'Definiendo y Usando Funciones',filename:'funciones.py',
+tokens:[{t:'def',c:'kw'},{t:' '},{t:'saludar',c:'fn'},{t:'(nombre):\n'},{t:'    '},{t:'print',c:'bi'},{t:'(Hola, '},{t:'{nombre}',c:'fb'},{t:'!")'},{t:'\n\n'},{t:'def',c:'kw'},{t:' '},{t:'sumar',c:'fn'},{t:'(a, b):\n'},{t:'    resultado',c:'var'},{t:' = a + b\n'},{t:'    '},{t:'return',c:'kw'},{t:' resultado\n\n'},{t:'# Llamar las funciones\n',c:'cmt'},{t:'saludar',c:'fn'},{t:'('},{t:'"Carlos"',c:'str'},{t:')\n'},{t:'saludar',c:'fn'},{t:'('},{t:'"Marta"',c:'str'},{t:')\n\n'},{t:'total',c:'var'},{t:' = '},{t:'sumar',c:'fn'},{t:'('},{t:'5',c:'num'},{t:', '},{t:'3',c:'num'},{t:')\n'},{t:'print',c:'bi'},{t:'(f"5 + 3 = '},{t:'{total}',c:'fb'},{t:'")'}],
+out:'Hola, Carlos!\nHola, Marta!\n5 + 3 = 8',
+tip:'<strong>def</strong> define la funci&#xf3;n. Los par&#xe1;metros son los datos de entrada. <strong>return</strong> devuelve el resultado al lugar donde se llam&#xf3; la funci&#xf3;n.',link:'https://trinket.io/python3'},
+{type:'quiz',qtype:'final',qid:'qfinal',title:'&#x1F3C6; Quiz Final',sub:'5 preguntas &middot; 2 clases &middot; &#xa1;A demostrar lo aprendido!',qs:[{q:'&#xa3;Cu&#xe1;l funci&#xf3;n se usa para <strong>mostrar texto</strong> en pantalla?',opts:['show()','display()','print()','output()'],ok:2,pts:10},{q:'&#xa3;Cu&#xe1;l es el resultado de <code style="background:#282a36;padding:.15rem .5rem;border-radius:.3rem;color:#bd93f9;font-family:monospace;">5 * 2</code>?',opts:['52','10','7','25'],ok:1,pts:10},{q:'&#xa3;Qu&#xe9; palabra clave se usa para <strong>definir una funci&#xf3;n</strong>?',opts:['function','fun','define','def'],ok:3,pts:10},{q:'&#xa3;Cu&#xe1;l bucle se usa cuando se conoce el <strong>n&#xfa;mero exacto</strong> de repeticiones?',opts:['while','for','if','repeat'],ok:1,pts:10},{q:'&#xa3;Cu&#xe1;l es el tipo de dato de <code style="background:#282a36;padding:.15rem .5rem;border-radius:.3rem;color:#ff79c6;font-family:monospace;">True</code>?',opts:['str','int','bool','float'],ok:2,pts:10}]},
+{type:'closing',title:'&#xa1;Curso Completado! &#x1F3C6;',isFinal:true,items:['&#x2705; Condicionales: <code>if</code>, <code>elif</code>, <code>else</code>','&#x2705; Bucles: <code>for</code> y <code>while</code> con <code>range()</code>','&#x2705; F-strings para texto din&#xe1;mico','&#x2705; Funciones con <code>def</code>, par&#xe1;metros y <code>return</code>','&#x2705; &#xa1;2 clases de Python completadas!'],reto:'&#x1F4A1; <strong>Siguiente paso:</strong> Explora listas, diccionarios y c&#xf3;mo crear tus propios proyectos. &#xa1;El l&#xed;mite es tu imaginaci&#xf3;n!',sig:'Recursos: python.org &middot; trinket.io &middot; repl.it'},
+{type:'bonus',badge:'&#x2B50; Contenido Extra',title:'Listas en Python',intro:'Una lista guarda <strong>m&#xfa;ltiples valores</strong> en una sola variable, en orden.',
+tokens:[{t:'frutas',c:'var'},{t:' = ['},{t:'"manzana"',c:'str'},{t:', '},{t:'"pera"',c:'str'},{t:', '},{t:'"uva"',c:'str'},{t:']\n\n'},{t:'print',c:'bi'},{t:'(frutas['},{t:'0',c:'num'},{t:'])         '},{t:'# &#x2192; manzana',c:'cmt'},{t:'\n'},{t:'print',c:'bi'},{t:'('},{t:'len',c:'bi'},{t:'(frutas))        '},{t:'# &#x2192; 3 (cantidad)',c:'cmt'},{t:'\n'},{t:'frutas.append('},{t:'"mango"',c:'str'},{t:')  '},{t:'# agregar al final',c:'cmt'},{t:'\n\n'},{t:'for',c:'kw'},{t:' fruta '},{t:'in',c:'kw'},{t:' frutas:\n'},{t:'    '},{t:'print',c:'bi'},{t:'(fruta)'}],
+out:'manzana\n3\nmanzana\npera\nuva\nmango',
+pts:['Los &#xed;ndices empiezan en <strong>0</strong> &mdash; el primer elemento es <code>[0]</code>.','<strong>len()</strong> retorna la cantidad de elementos de la lista.','<strong>.append()</strong> agrega un nuevo elemento al final.']},
+{type:'bonus',badge:'&#x2B50; Contenido Extra',title:'Diccionarios en Python',intro:'Un diccionario guarda pares <strong>clave: valor</strong> &mdash; como un diccionario real (palabra &#x2192; definici&#xf3;n).',
+tokens:[{t:'estudiante',c:'var'},{t:' = {\n'},{t:'    '},{t:'"nombre"',c:'str'},{t:': '},{t:'"Carlos"',c:'str'},{t:',\n'},{t:'    '},{t:'"edad"',c:'str'},{t:'  : '},{t:'16',c:'num'},{t:',\n'},{t:'    '},{t:'"grado"',c:'str'},{t:' : '},{t:'"10\u00b0"',c:'str'},{t:'\n'},{t:'}\n\n'},{t:'print',c:'bi'},{t:'(estudiante['},{t:'"nombre"',c:'str'},{t:'])  '},{t:'# &#x2192; Carlos',c:'cmt'},{t:'\n'},{t:'print',c:'bi'},{t:'(estudiante['},{t:'"edad"',c:'str'},{t:'])    '},{t:'# &#x2192; 16',c:'cmt'},{t:'\n\n'},{t:'estudiante['},{t:'"ciudad"',c:'str'},{t:'] = '},{t:'"Bogot&#xe1;"',c:'str'},{t:'\n'},{t:'print',c:'bi'},{t:'(estudiante)'}],
+out:"Carlos\n16\n{'nombre':'Carlos','edad':16,'grado':'10\u00b0','ciudad':'Bogot\u00e1'}",
+pts:['Se accede a valores con la <strong>clave</strong>: <code>diccionario["clave"]</code>.','Se pueden agregar nuevas claves en <strong>cualquier momento</strong>.','Las claves son <strong>&#xfa;nicas</strong> &mdash; no puede haber dos iguales.']}
+];
+
+function normalizeQuestionMarks(value){
+  if(typeof value==='string')return value.replaceAll('&#xa3;','&#xbf;');
+  if(Array.isArray(value))return value.map(normalizeQuestionMarks);
+  if(value&&typeof value==='object'){
+    Object.keys(value).forEach(key=>{value[key]=normalizeQuestionMarks(value[key]);});
+  }
+  return value;
+}
+normalizeQuestionMarks(C1);normalizeQuestionMarks(C2);
+const SLIDES={clase1:C1,clase2:C2};
+let activeClass='clase1',slideIdx=0,totalScore=0;
+const answered={};
+let finalSt={idx:0,score:0,done:false,started:false},finalChosen=-1;
+
+// â”€â”€ RENDERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function rCover(s){
+  const ac=s.color==='blue'?'#60a5fa':'#22c55e';
+  const cb=s.color==='blue'?'background:rgba(37,99,235,.2);color:#93c5fd;border:1px solid rgba(59,130,246,.3);':'background:rgba(22,101,52,.25);color:#86efac;border:1px solid rgba(34,197,94,.3);';
+  const chips=s.chips.map(c=>`<span style="${cb}padding:.25rem .75rem;border-radius:9999px;font-size:.78rem;font-weight:600;">${c}</span>`).join('');
+  return`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:1.1rem;text-align:center;user-select:none;">
+    <div style="font-size:5rem;filter:drop-shadow(0 0 28px ${ac}66);">${s.emoji}</div>
+    <h1 style="font-size:2.4rem;font-weight:900;line-height:1.15;color:${ac};">${s.title}</h1>
+    <p style="color:#8b949e;font-size:1.05rem;">${s.sub}</p>
+    <div style="display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-top:.4rem;">${chips}</div>
+    <p style="color:#8b949e;font-size:.8rem;margin-top:.7rem;animation:blink 1.5s step-start infinite;">Presiona <kbd style="background:#21262d;padding:.15rem .45rem;border-radius:.3rem;font-family:monospace;font-size:.75rem;">&#x2192;</kbd> para comenzar</p>
+  </div>`;}
+
+function rConcept(s){
+  const cards=s.cards.map(c=>`<div style="display:flex;align-items:flex-start;gap:.7rem;background:#161b22;border-radius:.75rem;padding:.75rem 1rem;border:1px solid #30363d;"><span style="font-size:1.2rem;flex-shrink:0;margin-top:.05rem;">${c.i}</span><p style="font-size:.85rem;line-height:1.55;color:#c9d1d9;">${c.t}</p></div>`).join('');
+  return`<div style="display:flex;flex-direction:column;height:100%;gap:.9rem;overflow-y:auto;" class="scr">
+    <div style="display:flex;align-items:center;gap:.7rem;flex-shrink:0;"><span style="font-size:2rem;">${s.icon}</span><h2 style="font-size:1.5rem;font-weight:800;">${s.title}</h2></div>
+    <p style="color:#8b949e;font-size:.9rem;line-height:1.6;flex-shrink:0;">${s.lead}</p>
+    <div style="display:flex;flex-direction:column;gap:.6rem;">${cards}</div>
+  </div>`;}
+
+function rCode(s){
+  const cid='code'+slideIdx;
+  const codeHTML=tok(s.tokens);
+  return`<div style="display:flex;flex-direction:column;height:100%;gap:.75rem;">
+    <h2 style="font-size:1.25rem;font-weight:800;flex-shrink:0;">${s.title}</h2>
+    <div style="flex:1;background:#282a36;border-radius:.85rem;overflow:hidden;display:flex;flex-direction:column;border:1px solid #44475a;min-height:0;">
+      <div style="display:flex;align-items:center;gap:.5rem;padding:.45rem .85rem;background:#21222c;border-bottom:1px solid #44475a;flex-shrink:0;">
+        <div style="display:flex;gap:.35rem;"><div style="width:11px;height:11px;border-radius:50%;background:#ff5f56;"></div><div style="width:11px;height:11px;border-radius:50%;background:#ffbd2e;"></div><div style="width:11px;height:11px;border-radius:50%;background:#27c93f;"></div></div>
+        <span style="font-family:monospace;font-size:.75rem;color:#6272a4;margin-left:.3rem;">${s.filename}</span>
+        <div style="margin-left:auto;display:flex;gap:.5rem;">
+          <button onclick="runCode('${cid}')" style="padding:.2rem .7rem;border-radius:.4rem;background:#166534;color:#86efac;border:none;cursor:pointer;font-size:.75rem;font-weight:700;">&#x25B6; Ejecutar</button>
+          <a href="${s.link}" target="_blank" rel="noopener" style="padding:.2rem .7rem;border-radius:.4rem;background:#21262d;color:#8b949e;text-decoration:none;font-size:.75rem;font-weight:600;border:1px solid #30363d;">&#x1F517; Trinket</a>
+        </div>
+      </div>
+      <div style="flex:1;overflow:auto;" class="scr"><pre style="padding:.9rem 1rem;font-size:.85rem;line-height:1.65;color:#f8f8f2;margin:0;" class="mono">${codeHTML}</pre></div>
+      <div id="${cid}" style="display:none;border-top:1px solid #44475a;background:#191a21;padding:.65rem 1rem;flex-shrink:0;max-height:9rem;overflow-y:auto;" class="scr">
+        <div style="font-size:.72rem;color:#50fa7b;margin-bottom:.4rem;font-family:monospace;">&#x25B6; Salida:</div>
+        <div id="${cid}_t" style="font-family:monospace;font-size:.84rem;color:#f8f8f2;line-height:1.6;"></div>
+      </div>
+    </div>
+    <div style="background:#161b22;border-radius:.7rem;padding:.65rem .9rem;border-left:3px solid #facc15;flex-shrink:0;">
+      <p style="font-size:.82rem;color:#c9d1d9;">&#x1F4A1; ${s.tip}</p>
+    </div>
+  </div>`;}
+
+function runCode(cid){
+  const s=SLIDES[activeClass][slideIdx];
+  const panel=document.getElementById(cid);
+  const txtEl=document.getElementById(cid+'_t');
+  panel.style.display='block';txtEl.innerHTML='';
+  const lines=s.out.split('\n');let i=0;
+  const go=()=>{if(i>=lines.length)return;txtEl.innerHTML+=(i?'<br>':'')+esc(lines[i++]);setTimeout(go,110);};go();}
+
+function rQuizSingle(s){
+  const qid=s.qid;
+  const opts=s.opts.map((o,i)=>`<div class="qopt" id="opt_${qid}_${i}" onclick="selS('${qid}',${i})" style="border-radius:.75rem;padding:.75rem 1rem;background:#161b22;display:flex;align-items:center;gap:.75rem;"><div id="ltr_${qid}_${i}" style="width:1.6rem;height:1.6rem;border-radius:50%;background:#21262d;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;color:#8b949e;flex-shrink:0;">${'ABCD'[i]}</div><span style="font-family:monospace;font-size:.88rem;">${esc(o.t)}</span></div>`).join('');
+  return`<div style="display:flex;flex-direction:column;height:100%;gap:.9rem;">
+    <div style="display:flex;align-items:center;gap:.5rem;flex-shrink:0;"><span style="background:rgba(234,179,8,.15);color:#fbbf24;border:1px solid rgba(234,179,8,.3);border-radius:9999px;padding:.15rem .7rem;font-size:.75rem;font-weight:700;">&#x2753; Selecci&#xf3;n &#xda;nica</span><span style="color:#8b949e;font-size:.75rem;">${s.pts} puntos</span></div>
+    <p style="font-size:1.05rem;font-weight:700;line-height:1.45;flex-shrink:0;">${s.q}</p>
+    <div style="display:flex;flex-direction:column;gap:.55rem;flex:1;overflow-y:auto;" class="scr" id="sopts_${qid}">${opts}</div>
+    <div id="sfb_${qid}" style="display:none;border-radius:.75rem;padding:.75rem 1rem;font-size:.84rem;border:1px solid;flex-shrink:0;"></div>
+    <button id="svbtn_${qid}" onclick="verS('${qid}')" style="padding:.4rem 1.3rem;border-radius:.6rem;background:#1d4ed8;color:white;border:none;cursor:pointer;font-size:.82rem;font-weight:700;align-self:flex-start;flex-shrink:0;${answered[qid]?'display:none;':''}">Verificar &#x2192;</button>
+  </div>`;}
+
+const sS={};
+function selS(qid,idx){
+  if(answered[qid])return;sS[qid]=idx;
+  const s=SLIDES[activeClass][slideIdx];
+  s.opts.forEach((_,i)=>{const el=document.getElementById(`opt_${qid}_${i}`);const ltr=document.getElementById(`ltr_${qid}_${i}`);if(i===idx){el.classList.add('sel');ltr.style.background='rgba(88,166,255,.25)';ltr.style.color='#58a6ff';}else{el.classList.remove('sel');ltr.style.background='';ltr.style.color='';}});}
+function verS(qid){
+  const chosen=sS[qid];if(chosen===undefined){alert('Selecciona una opci\u00f3n primero.');return;}
+  const s=SLIDES[activeClass][slideIdx];answered[qid]=true;
+  document.getElementById(`svbtn_${qid}`).style.display='none';
+  document.getElementById(`sopts_${qid}`).style.pointerEvents='none';
+  s.opts.forEach((o,i)=>{const el=document.getElementById(`opt_${qid}_${i}`);el.classList.add('locked');if(o.ok)el.classList.add('good');else if(i===chosen)el.classList.add('bad');});
+  const ok=s.opts[chosen].ok;
+  if(ok&&!answered[qid+':s']){answered[qid+':s']=true;addScore(s.pts);}
+  const fb=document.getElementById(`sfb_${qid}`);fb.style.display='block';
+  fb.innerHTML=ok?`<span style="color:#22c55e;font-weight:700;">&#x2705; &#xa1;Correcto!</span> ${s.opts[chosen].why}`:`<span style="color:#ef4444;font-weight:700;">&#x274C; Incorrecto.</span> ${s.opts[chosen].why}`;
+  fb.style.cssText=`display:block;border-radius:.75rem;padding:.75rem 1rem;font-size:.84rem;border:1px solid;flex-shrink:0;background:${ok?'rgba(22,101,52,.18)':'rgba(127,29,29,.18)'};border-color:${ok?'#166534':'#7f1d1d'};color:${ok?'#86efac':'#fca5a5'};`;}
+
+function rQuizMulti(s){
+  const qid=s.qid;
+  const opts=s.opts.map((o,i)=>`<div class="qopt" id="mopt_${qid}_${i}" onclick="togM('${qid}',${i})" style="border-radius:.75rem;padding:.65rem 1rem;background:#161b22;display:flex;align-items:center;gap:.75rem;"><div id="chk_${qid}_${i}" style="width:1.4rem;height:1.4rem;border-radius:.3rem;border:2px solid #30363d;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0;"></div><span style="font-size:.85rem;">${esc(o.t)}</span></div>`).join('');
+  return`<div style="display:flex;flex-direction:column;height:100%;gap:.9rem;">
+    <div style="display:flex;align-items:center;gap:.5rem;flex-shrink:0;"><span style="background:rgba(37,99,235,.18);color:#93c5fd;border:1px solid rgba(59,130,246,.3);border-radius:9999px;padding:.15rem .7rem;font-size:.75rem;font-weight:700;">&#x2611; Selecci&#xf3;n M&#xfa;ltiple</span><span style="color:#8b949e;font-size:.75rem;">${s.pts} puntos</span></div>
+    <p style="font-size:1.05rem;font-weight:700;line-height:1.45;flex-shrink:0;">${s.q}</p>
+    <div style="display:flex;flex-direction:column;gap:.5rem;flex:1;overflow-y:auto;" class="scr" id="mopts_${qid}">${opts}</div>
+    <div id="mfb_${qid}" style="display:none;border-radius:.75rem;padding:.75rem 1rem;font-size:.82rem;border:1px solid;flex-shrink:0;"></div>
+    <button id="mvbtn_${qid}" onclick="verM('${qid}')" style="padding:.4rem 1.3rem;border-radius:.6rem;background:#1d4ed8;color:white;border:none;cursor:pointer;font-size:.82rem;font-weight:700;align-self:flex-start;flex-shrink:0;${answered[qid]?'display:none;':''}">Verificar &#x2192;</button>
+  </div>`;}
+
+const mS={};
+function togM(qid,idx){
+  if(answered[qid])return;if(!mS[qid])mS[qid]=new Set();
+  const set=mS[qid];const el=document.getElementById(`mopt_${qid}_${idx}`);const chk=document.getElementById(`chk_${qid}_${idx}`);
+  if(set.has(idx)){set.delete(idx);el.classList.remove('sel');chk.innerHTML='';chk.style.cssText='width:1.4rem;height:1.4rem;border-radius:.3rem;border:2px solid #30363d;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0;';}
+  else{set.add(idx);el.classList.add('sel');chk.innerHTML='&#x2713;';chk.style.borderColor='#58a6ff';chk.style.background='rgba(88,166,255,.2)';chk.style.color='#58a6ff';}}
+function verM(qid){
+  const s=SLIDES[activeClass][slideIdx];const chosen=mS[qid]||new Set();
+  answered[qid]=true;document.getElementById(`mvbtn_${qid}`).style.display='none';document.getElementById(`mopts_${qid}`).style.pointerEvents='none';
+  let allOk=true;
+  s.opts.forEach((o,i)=>{const el=document.getElementById(`mopt_${qid}_${i}`);const chk=document.getElementById(`chk_${qid}_${i}`);el.classList.add('locked');
+    if(o.ok){el.classList.add('good');chk.innerHTML='&#x2713;';chk.style.borderColor='#50fa7b';chk.style.color='#50fa7b';if(!chosen.has(i))allOk=false;}
+    else if(chosen.has(i)){el.classList.add('bad');allOk=false;}});
+  if(allOk&&!answered[qid+':s']){answered[qid+':s']=true;addScore(s.pts);}
+  const lines=s.opts.map((o,i)=>{const p=chosen.has(i);const ok=(o.ok&&p)||(!o.ok&&!p);return`<div style="font-size:.78rem;padding:.15rem 0;">${ok?'&#x2705;':'&#x274C;'} ${o.why}</div>`;}).join('');
+  const fb=document.getElementById(`mfb_${qid}`);fb.style.display='block';
+  fb.innerHTML=`<div style="font-weight:700;margin-bottom:.35rem;color:${allOk?'#22c55e':'#facc15'}">${allOk?'&#x2705; &#xa1;Perfecto!':'&#x1F4DD; Revisa los resultados:'}</div>${lines}`;
+  fb.style.cssText=`display:block;border-radius:.75rem;padding:.75rem 1rem;font-size:.82rem;border:1px solid;flex-shrink:0;background:${allOk?'rgba(22,101,52,.18)':'rgba(120,53,15,.18)'};border-color:${allOk?'#166534':'#92400e'};color:${allOk?'#86efac':'#fde68a'};`;}
+
+function rQuizText(s){
+  const qid=s.qid;
+  return`<div style="display:flex;flex-direction:column;height:100%;gap:1.1rem;justify-content:center;">
+    <div style="display:flex;align-items:center;gap:.5rem;"><span style="background:rgba(124,58,237,.2);color:#c4b5fd;border:1px solid rgba(124,58,237,.3);border-radius:9999px;padding:.15rem .7rem;font-size:.75rem;font-weight:700;">&#x270F;&#xFE0F; Respuesta Escrita</span><span style="color:#8b949e;font-size:.75rem;">${s.pts} puntos</span></div>
+    <p style="font-size:1.05rem;font-weight:700;line-height:1.5;">${s.q}</p>
+    <div style="display:flex;gap:.75rem;align-items:center;">
+      <input id="tinp_${qid}" type="text" placeholder="Tu respuesta..." maxlength="20" style="background:#161b22;border:2px solid #30363d;outline:none;border-radius:.7rem;padding:.5rem 1rem;font-family:monospace;font-size:1.15rem;width:10rem;text-align:center;color:#f8f8f2;transition:border-color .2s;" onfocus="this.style.borderColor='#58a6ff'" onblur="this.style.borderColor='#30363d'" onkeydown="if(event.key==='Enter') verT('${qid}')" ${answered[qid]?'disabled':''}>
+      <button id="tvbtn_${qid}" onclick="verT('${qid}')" style="padding:.5rem 1.2rem;border-radius:.7rem;background:#1d4ed8;color:white;border:none;cursor:pointer;font-size:.85rem;font-weight:700;transition:all .2s;${answered[qid]?'display:none;':''}">Verificar &#x2192;</button>
+    </div>
+    <p style="color:#8b949e;font-size:.82rem;">${s.hint}</p>
+    <div id="tfb_${qid}" style="display:none;border-radius:.75rem;padding:.75rem 1rem;font-size:.85rem;border:1px solid;"></div>
+  </div>`;}
+function verT(qid){
+  const s=SLIDES[activeClass][slideIdx];const inp=document.getElementById(`tinp_${qid}`);const val=inp.value.trim();
+  if(!val){alert('Escribe tu respuesta.');return;}
+  answered[qid]=true;document.getElementById(`tvbtn_${qid}`).style.display='none';inp.disabled=true;
+  const ok=val===s.ans;if(ok&&!answered[qid+':s']){answered[qid+':s']=true;addScore(s.pts);}
+  inp.style.borderColor=ok?'#50fa7b':'#ff5555';inp.style.color=ok?'#50fa7b':'#ff5555';
+  const fb=document.getElementById(`tfb_${qid}`);fb.style.display='block';
+  fb.innerHTML=ok?`<span style="color:#22c55e;font-weight:700;">&#x2705; &#xa1;Correcto!</span> La respuesta es <strong>${s.ans}</strong>.`:`<span style="color:#ef4444;font-weight:700;">&#x274C; Incorrecto.</span> La respuesta era <strong style="color:#22c55e;">${s.ans}</strong>.`;
+  fb.style.cssText=`display:block;border-radius:.75rem;padding:.75rem 1rem;font-size:.85rem;border:1px solid;background:${ok?'rgba(22,101,52,.18)':'rgba(127,29,29,.18)'};border-color:${ok?'#166534':'#7f1d1d'};color:${ok?'#86efac':'#fca5a5'};`;}
+
+function rQuizTF(s){
+  const qid=s.qid;
+  const qs=s.qs.map((q,i)=>`<div style="background:#161b22;border-radius:.75rem;padding:.7rem .9rem;border:1px solid #30363d;"><p style="font-size:.83rem;margin-bottom:.55rem;line-height:1.5;">${q.s}</p><div style="display:flex;gap:.5rem;"><button class="vfb" id="vf_${qid}_${i}_t" onclick="selTF('${qid}',${i},true)">&#x2713; Verdadero</button><button class="vfb" id="vf_${qid}_${i}_f" onclick="selTF('${qid}',${i},false)">&#x2717; Falso</button></div></div>`).join('');
+  return`<div style="display:flex;flex-direction:column;height:100%;gap:.85rem;">
+    <div style="display:flex;align-items:center;gap:.5rem;flex-shrink:0;"><span style="background:rgba(234,88,12,.18);color:#fb923c;border:1px solid rgba(234,88,12,.3);border-radius:9999px;padding:.15rem .7rem;font-size:.75rem;font-weight:700;">&#x1F7E2;&#x1F534; Verdadero o Falso</span><span style="color:#8b949e;font-size:.75rem;">${s.pts} puntos</span></div>
+    <p style="font-size:1.1rem;font-weight:800;flex-shrink:0;">${s.title||'&#xa1;Verdadero o Falso!'}</p>
+    <div style="display:flex;flex-direction:column;gap:.55rem;flex:1;overflow-y:auto;" class="scr">${qs}</div>
+    <div id="tffb_${qid}" style="display:none;border-radius:.7rem;padding:.6rem .9rem;font-size:.82rem;border:1px solid;flex-shrink:0;"></div>
+    <button id="tfvbtn_${qid}" onclick="verTF('${qid}')" style="padding:.4rem 1.3rem;border-radius:.6rem;background:#ea580c;color:white;border:none;cursor:pointer;font-size:.82rem;font-weight:700;align-self:flex-start;flex-shrink:0;${answered[qid]?'display:none;':''}">Verificar Todo &#x2192;</button>
+  </div>`;}
+const tfS={};
+function selTF(qid,idx,val){
+  if(answered[qid])return;if(!tfS[qid])tfS[qid]={};tfS[qid][idx]=val;
+  document.getElementById(`vf_${qid}_${idx}_t`).className='vfb'+(val?' vs':'');
+  document.getElementById(`vf_${qid}_${idx}_f`).className='vfb'+(!val?' fs':'');}
+function verTF(qid){
+  const s=SLIDES[activeClass][slideIdx];const sel=tfS[qid]||{};let correct=0;
+  s.qs.forEach((q,i)=>{const ua=sel[i];const ok=(ua===q.a);if(ok)correct++;
+    const tb=document.getElementById(`vf_${qid}_${i}_t`);const fb=document.getElementById(`vf_${qid}_${i}_f`);
+    tb.classList.add('locked');fb.classList.add('locked');
+    if(q.a===true){tb.className='vfb vok locked';if(ua===false)fb.className='vfb fox locked';}
+    else{fb.className='vfb vok locked';if(ua===true)tb.className='vfb fox locked';}});
+  answered[qid]=true;document.getElementById(`tfvbtn_${qid}`).style.display='none';
+  const pct=Math.round(correct/s.qs.length*100);const pts=pct>=80?s.pts:pct>=60?Math.round(s.pts*.6):0;
+  if(pts>0&&!answered[qid+':s']){answered[qid+':s']=true;addScore(pts);}
+  const fbl=document.getElementById(`tffb_${qid}`);fbl.style.display='block';const isG=correct>=4;
+  fbl.innerHTML=`<strong>${correct}/${s.qs.length} correctas</strong> (${pct}%) ${pts>0?`&mdash; <span style="color:#facc15;">+${pts} pts</span>`:'&mdash; &#xa1;Sigue practicando!'}`;
+  fbl.style.cssText=`display:block;border-radius:.7rem;padding:.6rem .9rem;font-size:.82rem;border:1px solid;flex-shrink:0;background:${isG?'rgba(22,101,52,.18)':'rgba(120,53,15,.18)'};border-color:${isG?'#166534':'#92400e'};color:${isG?'#86efac':'#fde68a'};`;}
+
+function rQuizFinal(s){if(!finalSt.started)finalSt={idx:0,score:0,done:false,started:true};return rFQ(s);}
+function rFQ(s){
+  if(finalSt.done)return rFR(s);
+  const qi=finalSt.idx;const q=s.qs[qi];const L=['A','B','C','D'];
+  const prog=s.qs.map((_,i)=>`<div style="height:4px;flex:1;border-radius:9999px;background:${i<qi?'#22c55e':i===qi?'#60a5fa':'#21262d'};transition:background .3s;"></div>`).join('');
+  const opts=q.opts.map((o,i)=>`<div class="qopt" id="fopt_${i}" onclick="selF(${i})" style="border-radius:.75rem;padding:.75rem 1rem;background:#161b22;display:flex;align-items:center;gap:.75rem;"><div id="fltr_${i}" style="width:1.8rem;height:1.8rem;border-radius:50%;background:#21262d;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;color:#8b949e;flex-shrink:0;">${L[i]}</div><span style="font-size:.88rem;">${o}</span></div>`).join('');
+  return`<div style="display:flex;flex-direction:column;height:100%;gap:.9rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0;"><span style="background:rgba(234,179,8,.15);color:#fbbf24;border:1px solid rgba(234,179,8,.3);border-radius:9999px;padding:.15rem .8rem;font-size:.78rem;font-weight:700;">${s.title}</span><span style="color:#8b949e;font-size:.78rem;">Pregunta ${qi+1} de ${s.qs.length}</span></div>
+    <div style="display:flex;gap:.4rem;">${prog}</div>
+    <p style="font-size:1.1rem;font-weight:700;line-height:1.45;flex-shrink:0;">${q.q}</p>
+    <div style="display:flex;flex-direction:column;gap:.55rem;flex:1;overflow-y:auto;" class="scr" id="final_opts">${opts}</div>
+    <div id="final_fb" style="display:none;border-radius:.75rem;padding:.65rem 1rem;font-size:.85rem;border:1px solid;flex-shrink:0;"></div>
+    <div style="display:flex;gap:.6rem;flex-shrink:0;">
+      <button id="final_vbtn" onclick="verF()" style="padding:.4rem 1.2rem;border-radius:.6rem;background:#b45309;color:white;border:none;cursor:pointer;font-size:.82rem;font-weight:700;">Verificar &#x2192;</button>
+      <button id="final_nbtn" onclick="nextF()" style="display:none;padding:.4rem 1.2rem;border-radius:.6rem;background:#1d4ed8;color:white;border:none;cursor:pointer;font-size:.82rem;font-weight:700;">${qi<s.qs.length-1?'Siguiente &#x2192;':'Ver Resultados &#x1F3C6;'}</button>
+    </div>
+  </div>`;}
+function selF(idx){
+  finalChosen=idx;
+  [0,1,2,3].forEach(i=>{const el=document.getElementById('fopt_'+i);const ltr=document.getElementById('fltr_'+i);if(i===idx){el.classList.add('sel');ltr.style.background='rgba(88,166,255,.25)';ltr.style.color='#58a6ff';}else{el.classList.remove('sel');ltr.style.background='';ltr.style.color='';}});}
+function verF(){
+  if(finalChosen<0){alert('Selecciona una opci\u00f3n.');return;}
+  const s=SLIDES[activeClass][slideIdx];const q=s.qs[finalSt.idx];const ok=finalChosen===q.ok;
+  document.getElementById('final_vbtn').style.display='none';document.getElementById('final_nbtn').style.display='';document.getElementById('final_opts').style.pointerEvents='none';
+  q.opts.forEach((_,i)=>{const el=document.getElementById('fopt_'+i);const ltr=document.getElementById('fltr_'+i);el.classList.add('locked');
+    if(i===q.ok){el.classList.add('good');ltr.style.background='rgba(80,250,123,.25)';ltr.style.color='#50fa7b';}
+    else if(i===finalChosen&&!ok){el.classList.add('bad');ltr.style.background='rgba(255,85,85,.2)';ltr.style.color='#ff5555';}});
+  if(ok){finalSt.score+=q.pts;const fqk='fq'+finalSt.idx;if(!answered[fqk+':s']){answered[fqk+':s']=true;addScore(q.pts);}}
+  const fb=document.getElementById('final_fb');fb.style.display='block';
+  fb.innerHTML=ok?`<span style="color:#22c55e;font-weight:700;">&#x2705; &#xa1;Correcto! +${q.pts} pts</span>`:`<span style="color:#ef4444;font-weight:700;">&#x274C; Incorrecto.</span> La respuesta era: <strong style="color:#22c55e;">${q.opts[q.ok]}</strong>`;
+  fb.style.cssText=`display:block;border-radius:.75rem;padding:.65rem 1rem;font-size:.85rem;border:1px solid;flex-shrink:0;background:${ok?'rgba(22,101,52,.18)':'rgba(127,29,29,.18)'};border-color:${ok?'#166534':'#7f1d1d'};color:${ok?'#86efac':'#fca5a5'};`;}
+function nextF(){
+  finalChosen=-1;finalSt.idx++;
+  const s=SLIDES[activeClass][slideIdx];if(finalSt.idx>=s.qs.length)finalSt.done=true;
+  document.getElementById('main').innerHTML=`<div class="anim" style="height:100%;">${rFQ(s)}</div>`;}
+function rFR(s){
+  const total=s.qs.reduce((a,q)=>a+q.pts,0);const pct=Math.round(finalSt.score/total*100);
+  const medal=pct>=80?'&#x1F947;':pct>=60?'&#x1F948;':pct>=40?'&#x1F949;':'&#x1F4DA;';
+  const msg=pct>=80?'&#xa1;Excelente trabajo!':pct>=60?'&#xa1;Muy bien!':pct>=40?'&#xa1;Buen esfuerzo!':'&#xa1;Sigue practicando!';
+  return`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:1.1rem;text-align:center;">
+    <div style="font-size:4.5rem;">${medal}</div><h2 style="font-size:2rem;font-weight:900;">${msg}</h2>
+    <div style="background:#161b22;border-radius:1rem;padding:1.4rem 2rem;border:1px solid #30363d;min-width:14rem;">
+      <div style="font-size:3rem;font-weight:900;color:#facc15;">${finalSt.score}<span style="font-size:1.4rem;color:#8b949e;"> / ${total}</span></div>
+      <div style="color:#8b949e;font-size:.82rem;margin-top:.25rem;">puntos en el Quiz Final</div>
+      <div style="margin-top:.75rem;background:#21262d;border-radius:9999px;height:.55rem;overflow:hidden;"><div style="height:100%;background:#facc15;width:${pct}%;"></div></div>
+      <div style="font-size:.8rem;color:#8b949e;margin-top:.25rem;">${pct}%</div>
+    </div>
+    <div style="background:#161b22;border-radius:.75rem;padding:.65rem 1.2rem;border:1px solid #30363d;">
+      <span style="color:#8b949e;font-size:.82rem;">Puntaje total del curso: </span><span style="font-weight:800;color:#facc15;font-size:1rem;">${totalScore} pts</span>
+    </div>
+  </div>`;}
+
+function rClosing(s){
+  const items=s.items.map(it=>`<div style="background:#161b22;border-radius:.7rem;padding:.65rem .9rem;border:1px solid #30363d;font-size:.85rem;">${it}</div>`).join('');
+  const scoreEl=s.isFinal?`<div style="background:#161b22;border-radius:1rem;padding:1rem;border:1px solid rgba(234,179,8,.35);text-align:center;flex-shrink:0;"><div style="font-size:2.4rem;font-weight:900;color:#facc15;">${totalScore} pts</div><div style="color:#8b949e;font-size:.78rem;">Puntaje total del curso &#x1F3C6;</div></div>`:'';
+  return`<div style="display:flex;flex-direction:column;height:100%;gap:.85rem;overflow-y:auto;" class="scr">
+    <h2 style="font-size:1.5rem;font-weight:900;flex-shrink:0;">${s.title}</h2>
+    <div style="display:flex;flex-direction:column;gap:.45rem;">${items}</div>
+    <div style="background:#1c2128;border-radius:.75rem;padding:.75rem 1rem;border-left:3px solid #facc15;flex-shrink:0;"><p style="font-size:.84rem;line-height:1.6;color:#c9d1d9;">${s.reto}</p></div>
+    <div style="background:#161b22;border-radius:.75rem;padding:.7rem 1rem;border:1px solid #30363d;display:flex;align-items:center;gap:.7rem;flex-shrink:0;"><span style="font-size:1.4rem;">&#x1F680;</span><div><p style="font-size:.72rem;color:#8b949e;">Siguiente paso:</p><p style="font-size:.84rem;">${s.sig}</p></div></div>
+    ${scoreEl}
+  </div>`;}
+
+function rBonus(s){
+  const bid='bonus'+slideIdx;const codeHTML=tok(s.tokens);
+  const pts=s.pts.map(p=>`<div style="display:flex;align-items:flex-start;gap:.5rem;background:#161b22;border-radius:.6rem;padding:.6rem .85rem;border:1px solid #30363d;font-size:.82rem;color:#c9d1d9;"><span style="color:#facc15;flex-shrink:0;">&#x2605;</span>${p}</div>`).join('');
+  return`<div style="display:flex;flex-direction:column;height:100%;gap:.75rem;overflow-y:auto;" class="scr">
+    <div style="flex-shrink:0;"><span style="background:rgba(234,179,8,.15);color:#fbbf24;border:1px solid rgba(234,179,8,.3);border-radius:9999px;padding:.2rem .75rem;font-size:.76rem;font-weight:700;">${s.badge}</span></div>
+    <h2 style="font-size:1.3rem;font-weight:800;flex-shrink:0;">${s.title}</h2>
+    <p style="color:#8b949e;font-size:.84rem;flex-shrink:0;">${s.intro}</p>
+    <div style="background:#282a36;border-radius:.85rem;overflow:hidden;border:1px solid #44475a;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:.45rem;padding:.4rem .85rem;background:#21222c;border-bottom:1px solid #44475a;">
+        <div style="display:flex;gap:.3rem;"><div style="width:10px;height:10px;border-radius:50%;background:#ff5f56;"></div><div style="width:10px;height:10px;border-radius:50%;background:#ffbd2e;"></div><div style="width:10px;height:10px;border-radius:50%;background:#27c93f;"></div></div>
+        <span style="font-family:monospace;font-size:.72rem;color:#6272a4;margin-left:.3rem;">${s.title.toLowerCase().replace(/ /g,'_')}.py</span>
+        <button onclick="runB('${bid}')" style="margin-left:auto;padding:.18rem .65rem;border-radius:.35rem;background:#166534;color:#86efac;border:none;cursor:pointer;font-size:.73rem;font-weight:700;">&#x25B6; Ejecutar</button>
+      </div>
+      <pre style="padding:.85rem 1rem;font-size:.82rem;line-height:1.6;color:#f8f8f2;margin:0;overflow-x:auto;" class="mono scr">${codeHTML}</pre>
+      <div id="${bid}" style="display:none;border-top:1px solid #44475a;background:#191a21;padding:.55rem 1rem;max-height:7rem;overflow-y:auto;" class="scr">
+        <div style="font-size:.7rem;color:#50fa7b;margin-bottom:.3rem;font-family:monospace;">&#x25B6; Salida:</div>
+        <div id="${bid}_t" style="font-family:monospace;font-size:.8rem;color:#f8f8f2;line-height:1.6;"></div>
+      </div>
+    </div>
+    <div style="flex-shrink:0;"><p style="font-size:.72rem;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem;">Puntos clave</p><div style="display:flex;flex-direction:column;gap:.4rem;">${pts}</div></div>
+  </div>`;}
+function runB(bid){
+  const s=SLIDES[activeClass][slideIdx];const panel=document.getElementById(bid);const txtEl=document.getElementById(bid+'_t');
+  panel.style.display='block';txtEl.innerHTML='';const lines=s.out.split('\n');let i=0;
+  const go=()=>{if(i>=lines.length)return;txtEl.innerHTML+=(i?'<br>':'')+esc(lines[i++]);setTimeout(go,100);};go();}
+
+function rQuiz(s){switch(s.qtype){case 'single':return rQuizSingle(s);case 'multi':return rQuizMulti(s);case 'text':return rQuizText(s);case 'tf':return rQuizTF(s);case 'final':return rQuizFinal(s);}}
+
+// â”€â”€ NAV â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function render(){
+  const slides=SLIDES[activeClass];const s=slides[slideIdx];const total=slides.length;
+  document.getElementById('progFill').style.width=((slideIdx+1)/total*100)+'%';
+  document.getElementById('slideLabel').textContent=`${slideIdx+1} / ${total}`;
+  const prev=document.getElementById('btnPrev');prev.disabled=slideIdx===0;prev.style.opacity=slideIdx===0?.35:1;
+  const nBtn=document.getElementById('btnNext');nBtn.textContent=slideIdx===total-1&&activeClass==='clase1'?'Ir a Clase 2 \u2192':'Siguiente \u2192';
+  const dotNav=document.getElementById('dotNav');
+  dotNav.innerHTML=slides.map((_,i)=>{
+    const isB=slides[i].type==='bonus';
+    let bg=i<slideIdx?(isB?'#a16207':'#22c55e'):i===slideIdx?(isB?'#facc15':'#ffffff'):'#30363d';
+    return`<div class="dot" onclick="goTo(${i})" title="Slide ${i+1}" style="background:${bg};${i===slideIdx?'transform:scale(1.3);':''}"></div>`;}).join('');
+  let html='';
+  switch(s.type){case 'cover':html=rCover(s);break;case 'concept':html=rConcept(s);break;case 'code':html=rCode(s);break;case 'quiz':html=rQuiz(s);break;case 'closing':html=rClosing(s);break;case 'bonus':html=rBonus(s);break;default:html='<p>Slide no encontrado</p>';}
+  document.getElementById('main').innerHTML=`<div class="anim" style="height:100%;">${html}</div>`;
+  document.getElementById('scoreEl').textContent=totalScore+' pts';}
+
+function navigate(dir){
+  const slides=SLIDES[activeClass];const next=slideIdx+dir;
+  if(next<0||next>=slides.length){if(dir>0&&activeClass==='clase1'){setClass(2);return;}return;}
+  slideIdx=next;resetFI();render();}
+function goTo(i){slideIdx=i;resetFI();render();}
+function resetFI(){const s=SLIDES[activeClass][slideIdx];if(s.type==='quiz'&&s.qtype==='final')finalSt={idx:0,score:0,done:false,started:false};}
+function setClass(cls){
+  activeClass='clase'+cls;slideIdx=0;finalSt={idx:0,score:0,done:false,started:false};
+  const t1=document.getElementById('tab1');const t2=document.getElementById('tab2');
+  if(cls===1){t1.style.cssText='padding:.25rem 1rem;border-radius:.4rem;font-size:.8rem;font-weight:700;border:none;cursor:pointer;background:#22c55e;color:#000;transition:all .2s;';t2.style.cssText='padding:.25rem 1rem;border-radius:.4rem;font-size:.8rem;font-weight:700;border:none;cursor:pointer;background:transparent;color:#8b949e;transition:all .2s;';}
+  else{t1.style.cssText='padding:.25rem 1rem;border-radius:.4rem;font-size:.8rem;font-weight:700;border:none;cursor:pointer;background:transparent;color:#8b949e;transition:all .2s;';t2.style.cssText='padding:.25rem 1rem;border-radius:.4rem;font-size:.8rem;font-weight:700;border:none;cursor:pointer;background:#3b82f6;color:#fff;transition:all .2s;';}
+  render();}
+function addScore(pts){
+  totalScore+=pts;document.getElementById('scoreEl').textContent=totalScore+' pts';
+  const box=document.getElementById('scoreBox');box.classList.add('glow');setTimeout(()=>box.classList.remove('glow'),2000);}
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' '){e.preventDefault();navigate(1);}
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();navigate(-1);}});
+render();
+</script>
+</body>
+</html>
